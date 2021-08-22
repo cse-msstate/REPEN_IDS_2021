@@ -1,0 +1,411 @@
+8,9c8,9
+< of Ultrahigh-dimensional Data for Random Distance-based Outlier Detection. 
+< In KDD 2018: 24th ACM SIGKDD International Conferenceon Knowledge Discovery & 
+---
+> of Ultrahigh-dimensional Data for Random Distance-based Outlier Detection.
+> In KDD 2018: 24th ACM SIGKDD International Conferenceon Knowledge Discovery &
+15,17d14
+< from IPython import get_ipython
+< get_ipython().magic('reset -sf')
+< 
+19c16,17
+< np.random.seed(42)
+---
+> np.random.seed(123)
+> 
+21c19,20
+< tf.set_random_seed(42)
+---
+> tf.set_random_seed(123)
+> 
+26a26,27
+> import sys
+> 
+29c30
+< from keras.callbacks import ModelCheckpoint, TensorBoard
+---
+> from keras.callbacks import ModelCheckpoint, TensorBoard, Callback
+36c37,38
+<  normalization, writeRepresentation,writeResults, writeOutlierScores,visualizeData
+---
+>  normalization, writeRepresentation,writeResults, writeOutlierScores,visualizeData, \
+>  prcPerformance
+38c40,42
+< 
+---
+> from sklearn.model_selection import KFold, StratifiedKFold
+> from sklearn.model_selection import TimeSeriesSplit
+> from sklearn.metrics import precision_recall_curve
+49,50c53,54
+<     return K.sum(K.square(x - y), axis=-1);
+<  
+---
+>     return K.sum(K.square(x - y), axis=-1)
+> 
+59c63
+<         
+---
+> 
+64c68
+<         
+---
+> 
+69c73
+<     
+---
+> 
+77,79c81,83
+<         return input_example;
+<      
+<  
+---
+>         return input_example
+> 
+> 
+82,83c86,87
+<     Pang, Guansong, Kai Ming Ting, and David Albrecht. 
+<     "LeSiNN: Detecting anomalies by identifying least similar nearest neighbours." 
+---
+>     Pang, Guansong, Kai Ming Ting, and David Albrecht.
+>     "LeSiNN: Detecting anomalies by identifying least similar nearest neighbours."
+86c90
+<     rng = np.random.RandomState(42) 
+---
+>     rng = np.random.RandomState(123)
+89,90c93,94
+<     scores = np.zeros([x_train.shape[0], 1])  
+<     # for reproductibility purpose  
+---
+>     scores = np.zeros([x_train.shape[0], 1])
+>     # for reproductibility purpose
+98c102
+<         dists, indices = kdt.query(x_train, k = 1)       
+---
+>         dists, indices = kdt.query(x_train, k = 1)
+100,101c104,105
+<     scores = scores / ensemble_size  
+<     return scores;
+---
+>     scores = scores / ensemble_size
+>     return scores
+110c114
+<     while 1:        
+---
+>     while 1:
+132c136
+<     
+---
+> 
+136c140
+<         
+---
+> 
+138c142
+<         
+---
+> 
+140c144
+<             sid2 = rng.choice(len(inlier_ids), 1)        
+---
+>             sid2 = rng.choice(len(inlier_ids), 1)
+147c151,152
+<     return examples, positives, negatives;
+---
+>     return examples, positives, negatives
+> 
+150,151c155
+<     
+< def tripletModel(input_dim, embedding_size = 20): 
+---
+> def tripletModel(input_dim, embedding_size = 20):
+158c162
+<     
+---
+> 
+163c167
+<     
+---
+> 
+165c169
+<     
+---
+> 
+167c171
+<     
+---
+> 
+169c173
+<     
+---
+> 
+171c175,176
+<     return rankModel, representation;
+---
+>     return rankModel, representation
+> 
+173,174c178
+<     
+< def training_model(rankModel, X, labels,embedding_size, scores, filename, ite_num, rng = None):  
+---
+> def training_model(rankModel, X, labels, x_test, y_test, embedding_size, scores, filename, fold, rng=None):
+177,183d180
+<     
+<     rankModel.compile(optimizer = 'adadelta', loss = None)
+<     
+<     checkpointer = ModelCheckpoint("./model/" + str(embedding_size) + "D_" + str(ite_num) + "_"+ filename + ".h5", monitor='loss',
+<                                verbose=0, save_best_only = True, save_weights_only=True)
+<     
+<     
+185,187c182,185
+<     batch_size = 256    
+< #    samples_per_epoch = 5000
+<     samples_per_epoch = X.shape[0]
+---
+>     batch_size = 256
+>     samples_per_epoch = 5000
+>     epochs = 100000000 # we want this to run for 12h,24h,...
+>     #    samples_per_epoch = X.shape[0]
+188a187,199
+>     acc = 0
+> 
+>     rankModel.compile(optimizer='adadelta', loss=None)
+>     modelName = "./model/" + str(embedding_size) + "D_" + str(fold) + "_" + filename + '.h5'
+>     checkpointer = ModelCheckpoint("./model/" + str(embedding_size) + "D_" + str(fold) + "_"+ filename + ".h5", monitor='loss',
+>                                verbose=0, save_best_only=True, save_weights_only=True)
+> 
+>     ### CODE ADDED FOR SURVEY ###
+>     # instantiate custom callback object
+>     epoch_recorder = CustomCallback(modelName=modelName, x_test=x_test, y_test=y_test, filename=filename, epochs=epochs, fold_num=fold)
+> 
+> 
+> 
+191c202
+<                               epochs = 30,
+---
+>                               epochs = epochs,
+193,201c204,213
+<                               callbacks=[checkpointer])
+<     plt.figure(figsize=(5, 5))
+<     plt.plot(history.history['loss'])
+<     plt.grid()
+<     plt.title('model loss')
+<     plt.xlabel('epochs')
+<     plt.ylabel('loss')
+<     plt.show()
+<     
+---
+>                               callbacks=[checkpointer,epoch_recorder],
+>                               verbose = 0)
+>     # plt.figure(figsize=(5, 5))
+>     # plt.plot(history.history['loss'])
+>     # plt.grid()
+>     # plt.title('model loss')
+>     # plt.xlabel('epochs')
+>     # plt.ylabel('loss')
+>     # plt.show()
+> 
+208c220
+<     rankModel, representation = tripletModel(X.shape[1], embedding_size=20)  
+---
+>     rankModel, representation = tripletModel(X.shape[1], embedding_size=20)
+212,213c224,225
+<     
+<     new_X = representation.predict(X)  
+---
+> 
+>     new_X = representation.predict(X)
+215a228
+> 
+217c230,231
+<     writeResults(filename, embedding_size, rauc)
+---
+>     pauc = prcPerformance(scores, labels)
+>     writeResults(filename, embedding_size, rauc, pauc)
+219c233
+<     return rauc
+---
+>     return rauc, pauc
+221c235,264
+< def test_diff_embeddings(X, labels, outlier_scores, filename):
+---
+> ### CODE ADDED FOR SURVEY ###
+> # Testing function for epoch level testing
+> def load_epoch_predict(model_name, X, labels, embedding_size, filename):
+>     """load the representation learning model and do the mappings.
+>     LeSiNN, the Sp ensemble, is applied to perform outlier scoring
+>     in the representation space.
+>     """
+>     rankModel, representation = tripletModel(X.shape[1], embedding_size=20)
+>     rankModel.load_weights(model_name)
+>     representation = Model(inputs=rankModel.input[0],
+>                                  outputs=rankModel.get_layer('hidden_layer').get_output_at(0))
+> 
+>     new_X = representation.predict(X)
+> #    writeRepresentation(new_X, labels, embedding_size, filename + str(embedding_size) + "D_RankOD")
+>     scores = lesinn(new_X)
+> 
+>     precision, recall, thresholds = precision_recall_curve(labels, scores)
+>     numerator = 2 * recall * precision
+>     denom = recall + precision
+>     f1_scores = np.divide(numerator, denom, out=np.zeros_like(denom), where=(denom != 0))
+>     max_f1 = np.max(f1_scores)
+>     #max_f1_thresh = thresholds[np.argmax(f1_scores)]
+> 
+>     rauc = aucPerformance(scores, labels)
+>     pauc = prcPerformance(scores, labels)
+>     #writeResults(filename, embedding_size, rauc, pauc)
+> #    writeOutlierScores(scores, labels, str(embedding_size) + "D_"+filename)
+>     return rauc, pauc, max_f1
+> 
+> def test_diff_embeddings(X, labels, outlier_scores, filename, Y, y_labels):
+227,228c270,271
+<         test_single_embedding(X, labels, outlier_scores, filename, embedding_size)
+<         
+---
+>         test_single_embedding(X, labels, outlier_scores, filename, Y, y_labels, embedding_size)
+> 
+230c273
+< def test_single_embedding(X, labels, outlier_scores, filename, embedding_size = 20):
+---
+> def test_single_embedding(X, labels, outlier_scores, filename, wfold, embedding_size=20):
+234,242c277,318
+<     runs = 10
+<     rauc = np.empty([runs, 1])    
+<     rng = np.random.RandomState(42) 
+<     for i in range(0,runs):
+<         rankModel, representation = tripletModel(X.shape[1], embedding_size)    
+<         training_model(rankModel, X, labels, embedding_size, outlier_scores, filename, i, rng)
+<         
+<         modelName = "./model/" + str(embedding_size) + "D_" + str(i)+ "_" + filename + '.h5'
+<         rauc[i] = load_model_predict(modelName, X, labels, embedding_size,filename)
+---
+> 
+>     rng = np.random.RandomState(123)
+>     n_split = 4
+>     rauc = np.empty([n_split, 1])
+>     prauc = np.empty([n_split, 1])
+>     fold = 0
+>     which_fold = wfold #[0,1,2,3]
+>     for train_index, test_index in StratifiedKFold(n_split, random_state=123).split(X, labels):
+>         if fold != which_fold:
+>             print('ignore fold')
+>         else:
+>             # ======Added for Survey Paper====== #
+>             x_train, x_test = X[train_index], X[test_index]
+>             y_train, y_test = labels[train_index], labels[test_index]
+>             train_scores, test_scores = outlier_scores[train_index], outlier_scores[test_index]
+>             # ======Added for Survey Paper====== #
+> 
+>             rankModel, representation = tripletModel(x_train.shape[1], embedding_size)
+> 
+>             # ======Added for Survey Paper====== #
+>             start_time = time.time()
+>             # ======Added for Survey Paper====== #
+> 
+>             training_model(rankModel, x_train, y_train, x_test, y_test, embedding_size, train_scores, filename, fold, rng)
+> 
+>             ### CODE BELOW HERE IS NEVER REACHED IN THIS IMPLEMENTATION ###
+> 
+>             # ======Added for Survey Paper====== #
+>             print("Training Time:", time.time() - start_time)
+>             # ======Added for Survey Paper====== #
+>             modelName = "./model/" + str(embedding_size) + "D_" + str(fold)+ "_" + filename + '.h5'
+> 
+>             # ======Added for Survey Paper====== #
+>             test_time = time.time()
+>             # ======Added for Survey Paper====== #
+>             rauc[fold], prauc[fold] = load_model_predict(modelName, x_test, y_test, embedding_size,filename)
+> 
+>             # ======Added for Survey Paper====== #
+>             print("Testing Time:", time.time() - test_time)
+>             # ======Added for Survey Paper====== #
+> 
+>         fold += 1
+244a321,322
+>     mean_prauc = np.mean(prauc)
+>     s_prauc = np.std(prauc)
+246c324,376
+<     writeResults(filename, embedding_size, mean_auc, std_auc = s_auc)
+---
+>     writeResults(filename, embedding_size, mean_auc, mean_prauc, std_auc=s_auc, std_prauc=s_prauc)
+> 
+> ###CODE ADDED FOR SURVEY ###
+> # custom callback class so that we can record results per epoch
+> class CustomCallback(Callback):
+>     # initialize the custom callback class with the necessary data
+>     def __init__(self, modelName, x_test, y_test, filename, epochs, fold_num, embedding_size=20):
+>         self.modelName = modelName
+>         self.x_test = x_test
+>         self.y_test = y_test
+>         self.filename = filename
+>         self.embedding_size = embedding_size
+>         self.fold_num = fold_num
+>         self.rauc = np.empty([0, 1])
+>         self.pauc = np.empty([0, 1])
+>         self.f1 = np.empty([0, 1])
+>         self.test_time = np.empty([0, 1])
+>         self.train_time = np.empty([0, 1])
+> 
+>     # Code runs when an new epoch begins
+>     def on_epoch_begin(self, epoch, logs=None):
+>         # save the start time of the epoch/training session
+>         self.train_time = np.append(self.train_time, time.time())
+> 
+>     # Code runs when an epoch ends
+>     def on_epoch_end(self, epoch, logs=None):
+>         # Overwrite and save total epoch training time
+>         self.train_time[epoch] = time.time() - self.train_time[epoch]
+> 
+>         # record testing time and test model
+>         start_time = time.time()
+>         rauc, pauc, f1 = load_epoch_predict(self.modelName, self.x_test, self.y_test, self.embedding_size,
+>                                             self.filename)
+>         tt = time.time() - start_time
+> 
+>         # append times and scores to their respective numpy arrays
+>         self.test_time = np.append(self.test_time, tt)
+>         self.rauc = np.append(self.rauc, rauc)
+>         self.pauc = np.append(self.pauc, pauc)
+>         self.f1 = np.append(self.f1, f1)
+> 
+>         # save arrays to a single csv
+>         df = pd.DataFrame(list(zip(self.rauc, self.pauc, self.f1, self.train_time, self.test_time)),
+>                           columns=['ROC_AUC', 'PR_AUC', 'F1', 'Train Time', 'Test Time'])
+>         df.to_csv("results/" + filename + "_fold_" + str(self.fold_num) + ".csv")
+> 
+> 
+> 
+> try:
+>     filename = str(sys.argv[1])
+>     test_fold = int(sys.argv[2])
+> except(IndexError):
+>     raise IndexError('Dataset Name (without .csv) and Experiment Fold (0-3) must be supplied in the command line: \n python(3) main.py nslkdd_100 2')
+248,249c378
+< ## specify data files        
+< filename = 'lung-1vs5'
+---
+> ## specify data files
+252,259c381,382
+< #start_time = time.time() 
+<  
+< outlier_scores = lesinn(X) 
+< 
+< ##load the pre-saved outlier scores directly
+< #df = pd.read_csv('./outlierscores/' + filename + ".csv") 
+< #outlier_scores = df['score'].values
+< #labels = df['class'].values
+---
+> start_time = time.time()
+> outlier_scores = lesinn(X)
+262,267d384
+< #writeResults(filename, X.shape[1], rauc)
+< #outlier_scores = None
+< test_single_embedding(X, labels, outlier_scores, filename)
+< #print("--- %s seconds ---" % (time.time() - start_time))
+< #writeOutlierScores(outlier_scores, labels, filename)
+< #test_diff_embeddings(X, labels, outlier_scores, filename)
+268a386
+> test_single_embedding(X, labels, outlier_scores, filename, test_fold)
+269a388,389
+> ### In this implementation, this code is never reached ###
+> print("--- %s seconds ---" % (time.time() - start_time))
