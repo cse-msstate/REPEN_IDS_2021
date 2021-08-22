@@ -1,0 +1,130 @@
+8,9c8,9
+< of Ultrahigh-dimensional Data for Random Distance-based Outlier Detection. 
+< In KDD 2018: 24th ACM SIGKDD International Conferenceon Knowledge Discovery & 
+---
+> of Ultrahigh-dimensional Data for Random Distance-based Outlier Detection.
+> In KDD 2018: 24th ACM SIGKDD International Conferenceon Knowledge Discovery &
+19c19
+< from sklearn.externals.joblib import Memory
+---
+> from joblib import Memory
+20a21
+> import time
+22c23
+< mem = Memory("/home/gupang/Data/mycache")
+---
+> mem = Memory("./cachedir")
+31,36c32,37
+<     df = pd.read_csv(path) 
+<     
+<     labels = df['class']
+<     
+<     x_train_df = df.drop(['class'], axis=1)
+<     
+---
+>     df = pd.read_csv(path)
+>     ### changed string ###
+>     labels = df['label_class']
+> 
+>     x_train_df = df.drop(['label_class'], axis=1)
+> 
+39,40c40,45
+<     
+<     return x_train, labels;
+---
+> 
+>     ### CODE ADDED ###
+>     x_train = rescaling(x_train)
+>     ### CODE ADDED ###
+> 
+>     return x_train, labels
+45c50
+<     return x;
+---
+>     return x
+48a54
+> 
+55c61
+<     th = v_mean + th * v_std #1.7321 
+---
+>     th = v_mean + th * v_std #1.7321
+64,65c70,71
+<     return inlier_ind, outlier_ind;
+< #    return outlier_ind, inlier_ind;
+---
+>     return inlier_ind, outlier_ind
+> #    return outlier_ind, inlier_ind
+72c78
+<     th = v_mean + th * v_std #1.7321 
+---
+>     th = v_mean + th * v_std #1.7321
+78,79c84,85
+<     return inlier_ind, outlier_ind;
+<     
+---
+>     return inlier_ind, outlier_ind
+> 
+81c87
+<     fpr, tpr, thresholds = roc_curve(labels, mse, pos_label = 1 )
+---
+>     fpr, tpr, thresholds = roc_curve(labels, mse, pos_label=1)
+84,93c90,99
+< #    plt.title('Receiver Operating Characteristic')
+< #    plt.plot(fpr, tpr, label='AUC = %0.4f'% roc_auc)
+< #    plt.legend(loc='lower right')
+< #    plt.plot([0,1],[0,1],'r--')
+< #    plt.xlim([-0.001, 1])
+< #    plt.ylim([0, 1.001])
+< #    plt.ylabel('True Positive Rate')
+< #    plt.xlabel('False Positive Rate')
+< #    plt.show();
+<     return roc_auc;
+---
+>     """plt.title('Receiver Operating Characteristic')
+>     plt.plot(fpr, tpr, label='AUC = %0.4f'% roc_auc)
+>     plt.legend(loc='lower right')
+>     plt.plot([0,1],[0,1],'r--')
+>     plt.xlim([-0.001, 1])
+>     plt.ylim([0, 1.001])
+>     plt.ylabel('True Positive Rate')
+>     plt.xlabel('False Positive Rate')
+>     plt.show();"""
+>     return roc_auc
+97c103,106
+<     print(precision)
+---
+>     ### CODE ADDED ###
+>     pr_auc = auc(recall, precision)
+>     print(pr_auc)
+>     return pr_auc
+106c115
+<     csv_file = open('./outlierscores/' + name + '.csv', 'w') 
+---
+>     csv_file = open('./outlierscores/' + name + '.csv', 'w')
+117c126
+<     path = ('../data/representation/' + name + '.csv') 
+---
+>     path = ('../data/representation/' + name + '.csv')
+122,123c131,132
+<     
+<         
+---
+> 
+> 
+130,132c139,141
+< def writeResults(name, dim, auc, path = "./results/auc_performance.csv", std_auc = 0.0):    
+<     csv_file = open(path, 'a') 
+<     row = name + "," + str(dim)+ "," + str(auc) + "," + str(std_auc) + "\n"
+---
+> def writeResults(name, dim, auc, pr_auc, path = "./results/auc_performance.csv", std_auc = 0.0, std_prauc = 0.0):
+>     csv_file = open(path, 'a')
+>     row = name + "," + str(dim)+ "," + str(auc) + "," + str(std_auc) + "," + str(pr_auc) + "\n"
+136c145
+<     plt.figure(figsize=(5, 5))
+---
+>     """plt.figure(figsize=(5, 5))
+143,144c152
+<     plt.show()
+< 
+---
+>     plt.show()"""
